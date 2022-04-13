@@ -7,9 +7,13 @@ from ke import fix_random
 import torch
 from torch.utils.data import DataLoader
 from tqdm import trange
+from ke.model import TransE
+from torch import nn
+from torch import optim
 
 EPOCHS = 10000
 MARGIN = 1.0
+NORM = 2
 VECTOR_LENGTH = 50
 LEARNING_RATE = 0.1
 TRAIN_BATCH_SIZE = 128
@@ -28,11 +32,20 @@ if __name__ == "__main__":
 
     fb15k_train_dataset = KGDataset(train_path, fb15k_mapping, filter_flag=FILTER_FLAG)
     fb15k_train_dataloader = DataLoader(fb15k_train_dataset, TRAIN_BATCH_SIZE)
-    broken_range = set(range(fb15k_train_dataset.n_entity))
 
     device = torch.device('cuda') if USE_GPU else torch.device('cpu')
 
-    for i in trange(EPOCHS, desc='Train Epochs', mininterval=0.5, unit='epochs'):
+    transe = TransE(fb15k_train_dataset.n_entity, fb15k_train_dataset.n_relation, VECTOR_LENGTH, p_norm=NORM)
+    transe = transe.to(device)
+    loss_fn = nn.MarginRankingLoss(margin=MARGIN, reduction='none')
+    optimizer = optim.SGD(transe.parameters(), lr=LEARNING_RATE)
+
+    pb = trange(EPOCHS, desc='Train Epochs', maxinterval=1, unit='epochs')
+    postfix = {"epoch_total_loss": 0, "batch_loss": 0}
+    for epoch in pb:
+        epoch_total_loss = torch.tensor(0.)
+        epoch_total_loss = epoch_total_loss.to(device)
+
         for data in fb15k_train_dataloader:
             current_batch_size = len(data[0])
             if FILTER_FLAG:
@@ -61,4 +74,16 @@ if __name__ == "__main__":
                         assert bh == h or bt == t
                     except:
                         print(h, r, t, bh, bt)
+
+            optimizer.zero_grad()
+            positive_distance = transe(positive_triplets)
+            negative_distance = transe(negative_triplets)
+            loss = loss_fn(positive_distance, negative_distance, torch.tensor([-1]))
+            loss.mean().backward()
+            optimizer.step()
+            postfix["batch_loss"] = loss.mean().cpu().item()
+            pb.set_postfix(postfix)
+            epoch_total_loss += loss.sum()
+        postfix["epoch_total_loss"] = epoch_total_loss.cpu().item()
+        pb.set_postfix(postfix)
     fb15k_train_dataset.regenerate_head_or_tail()
