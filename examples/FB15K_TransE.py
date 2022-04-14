@@ -47,7 +47,7 @@ if __name__ == "__main__":
     print(f"entity_count:{n_entity}, n_relation_count:{n_relation}, "
           f"train_triplets_count:{fb15k_train_dataset.n_triplet}, "
           f"valid_triplets_count:{fb15k_valid_dataset.n_triplet}, "
-          f"test_triplets_count:{fb15k_test_dataset.n_triplet}")
+          f"test_triplets_count:{fb15k_test_dataset.n_triplet}\n")
 
     device = torch.device('cuda') if USE_GPU else torch.device('cpu')
 
