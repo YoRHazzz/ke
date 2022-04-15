@@ -1,4 +1,5 @@
 import os
+import sys
 
 from ke import fix_random, Tester, Trainer
 from ke.data import KGMapping, KGDataset
@@ -8,6 +9,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch import optim
 
+sys.path.append(os.path.dirname(sys.path[0]))
 NORM = 1
 MARGIN = 1.0
 VECTOR_LENGTH = 100
@@ -19,9 +21,11 @@ TRAIN_BATCH_SIZE = 4096
 VALID_BATCH_SIZE = 64
 TEST_BATCH_SIZE = 64
 VALIDATION_FREQUENCY = 100
-FILTER_FLAG = False
+FILTER_FLAG = True
 USE_GPU = True
 DATASET_PATH = os.path.join("..", "benchmarks", "FB15K")
+if not os.path.isdir("ckpt"):
+    os.mkdir("ckpt")
 CHECKPOINT_PATH = os.path.join("ckpt", "FB15K_TransE.checkpoint.tar")
 SEED = 1234
 
