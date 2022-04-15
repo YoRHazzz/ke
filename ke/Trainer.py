@@ -7,7 +7,8 @@ from torch.utils.data import DataLoader
 
 class Trainer(object):
     def __init__(self, model: BaseModel, train_dataloader: DataLoader, optimizer, device: torch.device,
-                 epochs: int, validation_frequency, validator, checkpoint_path, target_score=None):
+                 epochs: int, validation_frequency, validator, checkpoint_path,
+                 target_metric="h10", target_score=None):
         self.model = model
         self.train_dataloader = train_dataloader
         self.optimizer = optimizer
@@ -16,16 +17,19 @@ class Trainer(object):
         self.validation_frequency = validation_frequency
         self.validator = validator
         self.checkpoint_path = checkpoint_path
+        self.target_metric = target_metric
         self.target_score = target_score
 
     def run(self):
         p_bar = trange(self.epochs, desc='Train Epochs', mininterval=1, unit='epochs', file=sys.stdout,
                        colour="blue")
         postfix = {"loss_sum": '?', "loss_mean": '?'}
-        best_hits_at_10 = 0.
-        model_limit = 100.
         epoch = 0
         n_entity = self.train_dataloader.dataset.n_entity
+
+        best_metric_score = 0.
+        metric_score_dict = {}
+        model_limit = 0.
 
         for epoch in p_bar:
             self.model.train()
@@ -65,8 +69,12 @@ class Trainer(object):
             # finish one epoch
             if epoch % self.validation_frequency == 0:
                 hits_at_1, hits_at_3, hits_at_10, mr, mrr = self.validator.link_prediction()
-                model_limit = (hits_at_10 - best_hits_at_10) * ((self.epochs - epoch) / self.validation_frequency)
-                model_limit += hits_at_10
+                metric_score_dict["h1"], metric_score_dict["h3"], metric_score_dict["h10"], \
+                metric_score_dict["mr"], metric_score_dict["mrr"] = hits_at_1, hits_at_3, hits_at_10, mr, mrr
+                metric_score = metric_score_dict[self.target_metric]
+
+                model_limit = (metric_score - best_metric_score) * ((self.epochs - epoch) / self.validation_frequency)
+                model_limit += metric_score
                 p_bar.write(f"validate --- "
                             f"h1: {hits_at_1:<6.3f}% | "
                             f"h3: {hits_at_3:<6.3f}% | "
@@ -75,15 +83,29 @@ class Trainer(object):
                             f"mrr: {mrr:<6.3f} | "
                             f"epoch: {epoch:<6} | "
                             f"model_limit: {model_limit:<6.3f}")
-                if hits_at_10 > best_hits_at_10:
+                if metric_score > best_metric_score:
                     self.model.save_checkpoint(self.checkpoint_path)
-                    best_hits_at_10 = hits_at_10
-                if self.target_score and model_limit < self.target_score and epoch != 0:
-                    return epoch, best_hits_at_10, model_limit
-                if self.target_score and hits_at_10 > self.target_score:
-                    return epoch, best_hits_at_10, model_limit
+                    best_metric_score = metric_score
+
+                # early return
+                if self.target_score:
+                    if self.target_metric == "h1" or self.target_metric == "h3" \
+                           or self.target_metric == "h10" or self.target_metric == "mrr":
+                        if metric_score > self.target_score:
+                            print(f"metric_score is greater than target_min_score:{self.target_score}")
+                            return epoch, best_metric_score, model_limit
+                        if epoch != 0 and model_limit < self.target_score:
+                            print(f"model_limit is lower than target_min_score:{self.target_score}")
+                            return epoch, best_metric_score, model_limit
+                    if self.target_metric == "mr":
+                        if metric_score < self.target_score:
+                            print(f"metric_score is lower than target_max_score:{self.target_score}")
+                            return epoch, best_metric_score, model_limit
+                        if epoch != 0 and model_limit > self.target_score:
+                            print(f"model_limit is greater than target_max_score:{self.target_score}")
+                            return epoch, best_metric_score, model_limit
 
             self.train_dataloader.dataset.regenerate_head_or_tail()
         # finish training
         p_bar.close()
-        return epoch, best_hits_at_10, model_limit
+        return epoch, best_metric_score, model_limit
