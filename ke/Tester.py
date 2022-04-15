@@ -1,7 +1,6 @@
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-from ke import hit_at_k, mr, mrr
 
 
 class Tester(object):
@@ -55,11 +54,12 @@ class Tester(object):
             predictions = torch.cat((tails_predictions, heads_predictions), dim=0)
             ground_truth_entity_id = torch.cat((tails.reshape(-1, 1), heads.reshape(-1, 1)))
 
-            hits_at_1 += hit_at_k(predictions, ground_truth_entity_id, k=1)
-            hits_at_3 += hit_at_k(predictions, ground_truth_entity_id, k=3)
-            hits_at_10 += hit_at_k(predictions, ground_truth_entity_id, k=10)
-            mr_score += mr(predictions, ground_truth_entity_id)
-            mrr_score += mrr(predictions, ground_truth_entity_id)
+            rank = (predictions.argsort() == ground_truth_entity_id).nonzero()[:, 1].float().add(1.0)
+            hits_at_1 += (rank < 1).sum().item()
+            hits_at_3 += (rank < 3).sum().item()
+            hits_at_10 += (rank < 10).sum().item()
+            mr_score += rank.sum().item()
+            mrr_score += (1. / rank).sum().item()
 
         example_count = 2 * self.data_loader.dataset.n_triplet
         hits_at_1 = (hits_at_1 / example_count) * 100

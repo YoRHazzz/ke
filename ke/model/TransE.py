@@ -1,6 +1,5 @@
 import math
 
-import torch
 from torch import nn
 from .BaseModel import BaseModel
 import torch.nn.functional as F
