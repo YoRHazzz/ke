@@ -140,3 +140,4 @@ cython_debug/
 # custom
 .idea
 mytest.py
+*.checkpoint.tar
