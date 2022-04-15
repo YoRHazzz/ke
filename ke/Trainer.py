@@ -1,3 +1,5 @@
+import os.path
+
 from tqdm import trange
 import sys
 import torch
@@ -17,19 +19,25 @@ class Trainer(object):
         self.validation_frequency = validation_frequency
         self.validator = validator
         self.checkpoint_path = checkpoint_path
-        self.target_metric = target_metric
+        self.target_metric = target_metric.lower()
         self.target_score = target_score
 
-    def run(self):
+    def run(self, rerun_from=None):
+        if rerun_from and os.path.exists(rerun_from):
+            self.model.load_checkpoint(rerun_from)
+        else:
+            self.model.save_checkpoint(self.checkpoint_path)
+
         p_bar = trange(self.epochs, desc='Train Epochs', mininterval=1, unit='epochs', file=sys.stdout,
                        colour="blue")
+        p_bar.write(f"epoch  |   h@1   |   h@3   |   h@10   |   mrr  |    mr    | "
+                    f"predict limit {self.target_metric} on validation set")
         postfix = {"loss_sum": '?', "loss_mean": '?'}
         epoch = 0
         n_entity = self.train_dataloader.dataset.n_entity
 
         best_metric_score = 0.
         metric_score_dict = {}
-        model_limit = 0.
 
         for epoch in p_bar:
             self.model.train()
@@ -61,51 +69,51 @@ class Trainer(object):
                 loss.mean().backward()
                 self.optimizer.step()
                 loss_sum += loss.sum()
-                # finish one batch
+                # one batch finished
                 pass
             postfix["loss_sum"] = loss_sum.item()
             postfix["loss_mean"] = postfix["loss_sum"] / self.train_dataloader.dataset.n_triplet
             p_bar.set_postfix(postfix)
-            # finish one epoch
+            # one epoch finished
             if epoch % self.validation_frequency == 0:
                 hits_at_1, hits_at_3, hits_at_10, mr, mrr = self.validator.link_prediction()
                 metric_score_dict["h1"], metric_score_dict["h3"], metric_score_dict["h10"], \
-                metric_score_dict["mr"], metric_score_dict["mrr"] = hits_at_1, hits_at_3, hits_at_10, mr, mrr
+                    metric_score_dict["mr"], metric_score_dict["mrr"] = hits_at_1, hits_at_3, hits_at_10, mr, mrr
                 metric_score = metric_score_dict[self.target_metric]
 
-                model_limit = (metric_score - best_metric_score) * ((self.epochs - epoch) / self.validation_frequency)
-                model_limit += metric_score
-                p_bar.write(f"validate --- "
-                            f"h1: {hits_at_1:<6.3f}% | "
-                            f"h3: {hits_at_3:<6.3f}% | "
-                            f"h10: {hits_at_10:<6.3f}% | "
-                            f"mr: {mr:<6.3f} | "
-                            f"mrr: {mrr:<6.3f} | "
-                            f"epoch: {epoch:<6} | "
-                            f"model_limit: {model_limit:<6.3f}")
+                predict_limit = (metric_score - best_metric_score) * ((self.epochs - epoch) / self.validation_frequency)
+                predict_limit += metric_score
+                p_bar.write(f"{epoch:<6} | "
+                            f"{hits_at_1:<6.3f}% | "
+                            f"{hits_at_3:<6.3f}% | "
+                            f"{hits_at_10:<6.3f}%  | "
+                            f"{mrr:<6.4f} | "
+                            f"{mr:<8.3f} | "
+                            f"{predict_limit:<6.3f}")
                 if metric_score > best_metric_score:
                     self.model.save_checkpoint(self.checkpoint_path)
                     best_metric_score = metric_score
 
+                higher_better = {"h1", "h3", "h10", "mrr"}
+                lower_better = {"mr"}
                 # early return
                 if self.target_score:
-                    if self.target_metric == "h1" or self.target_metric == "h3" \
-                           or self.target_metric == "h10" or self.target_metric == "mrr":
+                    if self.target_metric in higher_better:
                         if metric_score > self.target_score:
-                            print(f"metric_score is greater than target_min_score:{self.target_score}")
-                            return epoch, best_metric_score, model_limit
-                        if epoch != 0 and model_limit < self.target_score:
-                            print(f"model_limit is lower than target_min_score:{self.target_score}")
-                            return epoch, best_metric_score, model_limit
-                    if self.target_metric == "mr":
+                            p_bar.write("-" * 20 + f"Reach the goal in the epoch {epoch}" + "-" * 20)
+                            return epoch, best_metric_score
+                        if epoch != 0 and predict_limit < self.target_score:
+                            p_bar.write("-" * 20 + f"Never Reach the goal:{self.target_score}" + "-" * 20)
+                            return epoch, best_metric_score
+                    if self.target_metric in lower_better:
                         if metric_score < self.target_score:
-                            print(f"metric_score is lower than target_max_score:{self.target_score}")
-                            return epoch, best_metric_score, model_limit
-                        if epoch != 0 and model_limit > self.target_score:
-                            print(f"model_limit is greater than target_max_score:{self.target_score}")
-                            return epoch, best_metric_score, model_limit
+                            p_bar.write("-" * 20 + f"Reach the goal in the epoch {epoch}" + "-" * 20)
+                            return epoch, best_metric_score
+                        if epoch != 0 and predict_limit > self.target_score:
+                            p_bar.write("-" * 20 + f"Never Reach the goal:{self.target_score}" + "-" * 20)
+                            return epoch, best_metric_score
 
             self.train_dataloader.dataset.regenerate_head_or_tail()
-        # finish training
+        # train finished
         p_bar.close()
-        return epoch, best_metric_score, model_limit
+        return epoch, best_metric_score
