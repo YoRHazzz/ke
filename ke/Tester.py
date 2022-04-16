@@ -55,9 +55,9 @@ class Tester(object):
             ground_truth_entity_id = torch.cat((tails.reshape(-1, 1), heads.reshape(-1, 1)))
 
             rank = (predictions.argsort() == ground_truth_entity_id).nonzero()[:, 1].float().add(1.0)
-            hits_at_1 += (rank < 1).sum().item()
-            hits_at_3 += (rank < 3).sum().item()
-            hits_at_10 += (rank < 10).sum().item()
+            hits_at_1 += (rank <= 1).sum().item()
+            hits_at_3 += (rank <= 3).sum().item()
+            hits_at_10 += (rank <= 10).sum().item()
             mr_score += rank.sum().item()
             mrr_score += (1. / rank).sum().item()
 

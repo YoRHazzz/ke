@@ -19,12 +19,13 @@ class TransE(BaseModel):
         initial_range = 6. / math.sqrt(self.vector_length)
         self.entity_embeddings.weight.data.uniform_(-initial_range, initial_range)
         self.relation_embeddings.weight.data.uniform_(-initial_range, initial_range)
-        self.relation_embeddings.weight.data = F.normalize(self.relation_embeddings.weight.data, p=self.p_norm)
+        self.relation_embeddings.weight.data = F.normalize(self.relation_embeddings.weight.data, p=2)
 
         self.criterion = nn.MarginRankingLoss(margin=self.margin, reduction='none')
 
     def forward(self, triplets):
-        self.entity_embeddings.weight.data = F.normalize(self.entity_embeddings.weight.data, p=self.p_norm)
+        # self.relation_embeddings.weight.data = F.normalize(self.relation_embeddings.weight.data, p=self.p_norm)
+        self.entity_embeddings.weight.data = F.normalize(self.entity_embeddings.weight.data, p=2)
         assert triplets.size()[1] == 3
         heads, relations, tails = triplets[:, 0], triplets[:, 1], triplets[:, 2]
         return (self.entity_embeddings(heads) + self.relation_embeddings(relations) - self.entity_embeddings(tails)) \

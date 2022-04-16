@@ -16,7 +16,6 @@ conda create -n ke python=3.8
 conda activate ke
 pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
 pip3 install tqdm pandas
-cd examples
-python FB15K_TransE.py
+python FB15K237_TransE.py
 ```
 
