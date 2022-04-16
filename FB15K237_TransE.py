@@ -8,6 +8,9 @@ import torch
 from torch.utils.data import DataLoader
 from torch import optim
 
+
+LOG = False
+
 if __name__ == "__main__":
     args = parse_args()
     NORM, MARGIN, VECTOR_LENGTH, LEARNING_RATE = args.NORM, args.MARGIN, args.VECTOR_LENGTH, args.LEARNING_RATE
@@ -19,7 +22,7 @@ if __name__ == "__main__":
     TARGET_METRIC, TARGET_SCORE = args.TARGET_METRIC, args.TARGET_SCORE
     SEED, PROC_TITLE = args.SEED, args.PROC_TITLE
 
-    logger = get_logger()
+    logger = get_logger() if LOG else None
     message = f"\nMARGIN:{MARGIN}, NORM:{NORM}, VECTOR_LENGTH:{VECTOR_LENGTH}, LEARNING_RATE:{LEARNING_RATE}\n" \
               f"EPOCHS:{EPOCHS}, VALIDATE_FREQUENCY:{VALIDATE_FREQUENCY}, FILTER_FLAG:{FILTER_FLAG}\n" \
               f"USE_GPU:{USE_GPU}, GPU_INDEX:{GPU_INDEX}, SEED:{SEED}, PROC_TITLE:{PROC_TITLE}\n" \
@@ -28,7 +31,8 @@ if __name__ == "__main__":
               f"TEST_BATCH_SIZE:{TEST_BATCH_SIZE}\n" \
               f"TARGET_METRIC:{TARGET_METRIC}, TARGET_SCORE:{TARGET_SCORE}\n"
     print(message)
-    logger.info(message)
+    if LOG:
+        logger.info(message)
 
     if not os.path.isdir("ckpt"):
         os.mkdir("ckpt")
@@ -41,7 +45,8 @@ if __name__ == "__main__":
     checkpoint_path = CHECKPOINT_PATH
 
     print("preparing knowledge graph data...", end='')
-    logger.info("preparing knowledge graph data...")
+    if LOG:
+        logger.info("preparing knowledge graph data...")
 
     fb15k_mapping = KGMapping(FB15K_path)
     n_entity = fb15k_mapping.n_entity
@@ -55,21 +60,24 @@ if __name__ == "__main__":
     fb15k_test_dataloader = DataLoader(fb15k_test_dataset, TEST_BATCH_SIZE)
 
     print("done")
-    logger.info("done")
+    if LOG:
+        logger.info("done")
 
     message = f"entity_count:{n_entity}, n_relation_count:{n_relation}\n" \
               f"train_triplets_count:{fb15k_train_dataset.n_triplet}, " \
               f"valid_triplets_count:{fb15k_valid_dataset.n_triplet}, " \
               f"test_triplets_count:{fb15k_test_dataset.n_triplet}\n"
     print(message)
-    logger.info(message)
+    if LOG:
+        logger.info(message)
 
     if USE_GPU:
         assert GPU_INDEX < torch.cuda.device_count()
     device = torch.device('cuda:' + str(GPU_INDEX)) if USE_GPU else torch.device('cpu')
 
     print("preparing model...", end='')
-    logger.info("preparing model...")
+    if LOG:
+        logger.info("preparing model...")
 
     transe = TransE(n_entity, n_relation, VECTOR_LENGTH, p_norm=NORM, margin=MARGIN)
     transe = transe.to(device)
@@ -83,20 +91,24 @@ if __name__ == "__main__":
                       device=device, epochs=EPOCHS, validation_frequency=VALIDATE_FREQUENCY,
                       validator=validator, checkpoint_path=checkpoint_path,
                       target_metric=TARGET_METRIC, target_score=TARGET_SCORE,
-                      log_write_func=logger.info)
+                      log_write_func=logger.info if LOG else None)
 
     print("done")
-    logger.info("done")
+    if LOG:
+        logger.info("done")
     print(transe)
-    logger.info(transe)
+    if LOG:
+        logger.info(transe)
 
     print("-" * 20, "start training epochs", "-" * 20)
-    logger.info("-" * 20 + " start training epochs " + "-" * 20)
+    if LOG:
+        logger.info("-" * 20 + " start training epochs " + "-" * 20)
 
     exit_epoch, best_metric_score = trainer.run()
     message = f"exit epoch: {exit_epoch}, best {TARGET_METRIC} on validation: {best_metric_score}"
     print(message)
-    logger.info(message)
+    if LOG:
+        logger.info(message)
 
     transe.load_checkpoint(checkpoint_path)
     hits_at_1, hits_at_3, hits_at_10, mr, mrr = tester.link_prediction()
@@ -108,4 +120,6 @@ if __name__ == "__main__":
               f"mr: {mr:<6.3f} | " \
               f"mrr: {mrr:<6.3f} | "
     print(message)
-    logger.info(message)
+    if LOG:
+        logger.info(message)
+        logger.info("-" * 50)
