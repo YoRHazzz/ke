@@ -48,4 +48,4 @@ def parse_args():
 
 
 def _bool(s):
-    return s != "False"
+    return s == "True" or s == "1"
