@@ -141,3 +141,4 @@ cython_debug/
 .idea
 mytest.py
 *.checkpoint.tar
+log/

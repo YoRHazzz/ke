@@ -3,6 +3,7 @@ import random
 import numpy as np
 import argparse
 import os
+import logging
 
 
 def fix_random(seed=1234):
@@ -49,3 +50,22 @@ def parse_args():
 
 def _bool(s):
     return s == "True" or s == "1"
+
+
+def get_logger(logfile_name="log.txt"):
+    if not os.path.isdir("log"):
+        os.mkdir("log")
+
+    log_path = os.path.join("log", logfile_name)
+    fh = logging.FileHandler(log_path)
+    fh.setLevel(logging.INFO)
+    fmt = "%(asctime)-15s %(message)s"
+    datefmt = "%H:%M:%S"
+    formatter = logging.Formatter(fmt, datefmt)
+    fh.setFormatter(formatter)
+
+    logger = logging.getLogger(logfile_name)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(fh)
+
+    return logger
