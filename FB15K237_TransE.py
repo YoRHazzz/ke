@@ -107,8 +107,9 @@ if __name__ == "__main__":
     if LOG:
         logger.info("-" * 20 + " start training epochs " + "-" * 20)
 
-    exit_epoch, best_metric_score = trainer.run()
-    message = f"exit epoch: {exit_epoch}, best {TARGET_METRIC} on validation: {best_metric_score}"
+    exit_epoch, best_metric_score, loss_sum, loss_mean = trainer.run()
+    message = f"exit epoch: {exit_epoch}, best {TARGET_METRIC} on validation: {best_metric_score}," \
+              f" loss_sum: {loss_sum}, loss_min:{loss_mean}"
     print(message)
     if LOG:
         logger.info(message)
