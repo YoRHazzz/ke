@@ -20,7 +20,8 @@ VALID_BATCH_SIZE = 64
 TEST_BATCH_SIZE = 64
 VALIDATION_FREQUENCY = 50
 FILTER_FLAG = True
-USE_GPU = 1
+USE_GPU = True
+GPU_INDEX = 1
 
 DATASET_PATH = os.path.join("benchmarks", "FB15K-237.2")
 if not os.path.isdir("ckpt"):
@@ -63,7 +64,7 @@ if __name__ == "__main__":
           f"valid_triplets_count:{fb15k_valid_dataset.n_triplet}, "
           f"test_triplets_count:{fb15k_test_dataset.n_triplet}\n")
 
-    device = torch.device('cuda:' + str(USE_GPU)) if USE_GPU else torch.device('cpu')
+    device = torch.device('cuda:' + str(GPU_INDEX)) if USE_GPU else torch.device('cpu')
 
     print("preparing model...", end='')
     transe = TransE(n_entity, n_relation, VECTOR_LENGTH, p_norm=NORM, margin=MARGIN)
