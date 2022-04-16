@@ -1,4 +1,5 @@
 import os
+import datetime
 
 from ke import fix_random, set_proc_title, parse_args, get_logger, Tester, Trainer
 from ke.data import KGMapping, KGDataset
@@ -9,7 +10,7 @@ from torch.utils.data import DataLoader
 from torch import optim
 
 
-LOG = False
+LOG = True
 
 if __name__ == "__main__":
     args = parse_args()
@@ -22,7 +23,9 @@ if __name__ == "__main__":
     TARGET_METRIC, TARGET_SCORE = args.TARGET_METRIC, args.TARGET_SCORE
     SEED, PROC_TITLE = args.SEED, args.PROC_TITLE
 
-    logger = get_logger() if LOG else None
+    now = datetime.datetime.now()
+    date = f"{now.year}-{now.month}-{now.day}"
+    logger = get_logger(date+".txt") if LOG else None
     message = f"\nMARGIN:{MARGIN}, NORM:{NORM}, VECTOR_LENGTH:{VECTOR_LENGTH}, LEARNING_RATE:{LEARNING_RATE}\n" \
               f"EPOCHS:{EPOCHS}, VALIDATE_FREQUENCY:{VALIDATE_FREQUENCY}, FILTER_FLAG:{FILTER_FLAG}\n" \
               f"USE_GPU:{USE_GPU}, GPU_INDEX:{GPU_INDEX}, SEED:{SEED}, PROC_TITLE:{PROC_TITLE}\n" \
@@ -32,6 +35,7 @@ if __name__ == "__main__":
               f"TARGET_METRIC:{TARGET_METRIC}, TARGET_SCORE:{TARGET_SCORE}\n"
     print(message)
     if LOG:
+        logger.info("-"*20+f" {date} "+"-"*20)
         logger.info(message)
 
     if not os.path.isdir("ckpt"):
