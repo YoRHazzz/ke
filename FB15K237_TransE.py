@@ -22,7 +22,8 @@ if __name__ == "__main__":
 
     print(f"MARGIN:{MARGIN}, NORM:{NORM}, VECTOR_LENGTH:{VECTOR_LENGTH}, LEARNING_RATE:{LEARNING_RATE}\n"
           f"EPOCHS:{EPOCHS}, VALIDATE_FREQUENCY:{VALIDATE_FREQUENCY}, FILTER_FLAG:{FILTER_FLAG}\n"
-          f"USE_GPU:{USE_GPU}, SEED:{SEED}, DATASET_PATH:{DATASET_PATH}, CHECKPOINT_PATH:{CHECKPOINT_PATH}\n"
+          f"USE_GPU:{USE_GPU}, GPU_INDEX:{GPU_INDEX}, SEED:{SEED}, PROC_TITLE:{PROC_TITLE}\n"
+          f"DATASET_PATH:{DATASET_PATH}, CHECKPOINT_PATH:{CHECKPOINT_PATH}\n"
           f"TRAIN_BATCH_SIZE:{TRAIN_BATCH_SIZE}, VALID_BATCH_SIZE:{VALID_BATCH_SIZE}, "
           f"TEST_BATCH_SIZE:{TEST_BATCH_SIZE}\n"
           f"TARGET_METRIC:{TARGET_METRIC}, TARGET_SCORE:{TARGET_SCORE}\n")
@@ -49,7 +50,7 @@ if __name__ == "__main__":
     fb15k_test_dataset = KGDataset(test_path, fb15k_mapping)
     fb15k_test_dataloader = DataLoader(fb15k_test_dataset, TEST_BATCH_SIZE)
     print("done")
-    print(f"entity_count:{n_entity}, n_relation_count:{n_relation}, "
+    print(f"entity_count:{n_entity}, n_relation_count:{n_relation}\n"
           f"train_triplets_count:{fb15k_train_dataset.n_triplet}, "
           f"valid_triplets_count:{fb15k_valid_dataset.n_triplet}, "
           f"test_triplets_count:{fb15k_test_dataset.n_triplet}\n")
