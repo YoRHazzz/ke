@@ -29,7 +29,7 @@ class Trainer(object):
             self.model.save_checkpoint(self.checkpoint_path)
 
         p_bar = trange(self.epochs, desc='Train Epochs', mininterval=1, unit='epochs', file=sys.stdout,
-                       colour="blue")
+                       colour="blue", ncols=100)
         p_bar.write(f"epoch  |   h@1   |   h@3   |   h@10   |   mrr  |    mr    | "
                     f"predict limit {self.target_metric} on validation set")
         postfix = {"loss_sum": '?', "loss_mean": '?'}

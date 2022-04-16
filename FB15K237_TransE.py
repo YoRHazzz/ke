@@ -1,7 +1,6 @@
 import os
-import sys
 
-from ke import fix_random, Tester, Trainer
+from ke import fix_random, set_proc_title, Tester, Trainer
 from ke.data import KGMapping, KGDataset
 from ke.model import TransE
 
@@ -9,25 +8,27 @@ import torch
 from torch.utils.data import DataLoader
 from torch import optim
 
-sys.path.append(os.path.dirname(sys.path[0]))
 NORM = 1
 MARGIN = 5.0
 VECTOR_LENGTH = 200
-LEARNING_RATE = 1
+LEARNING_RATE = 10
 TARGET_METRIC = 'h10'  # hit@10
 TARGET_SCORE = None  # 70%
-EPOCHS = 5000
-TRAIN_BATCH_SIZE = 4096
+EPOCHS = 1000
+TRAIN_BATCH_SIZE = 4000
 VALID_BATCH_SIZE = 64
 TEST_BATCH_SIZE = 64
-VALIDATION_FREQUENCY = 100
+VALIDATION_FREQUENCY = 50
 FILTER_FLAG = True
-USE_GPU = True
-DATASET_PATH = os.path.join("..", "benchmarks", "FB15K-237.2")
+USE_GPU = 1
+
+DATASET_PATH = os.path.join("benchmarks", "FB15K-237.2")
 if not os.path.isdir("ckpt"):
     os.mkdir("ckpt")
 CHECKPOINT_PATH = os.path.join("ckpt", "FB15K-237.2_TransE.checkpoint.tar")
 SEED = 1234
+PROC_TITLE = "TransE"
+
 
 if __name__ == "__main__":
     print(f"MARGIN:{MARGIN}, NORM:{NORM}, VECTOR_LENGTH:{VECTOR_LENGTH}, LEARNING_RATE:{LEARNING_RATE}\n"
@@ -38,6 +39,7 @@ if __name__ == "__main__":
           f"TARGET_METRIC:{TARGET_METRIC}, TARGET_SCORE:{TARGET_SCORE}\n")
 
     fix_random(SEED)
+    set_proc_title(PROC_TITLE)
     FB15K_path = DATASET_PATH
     train_path = os.path.join(FB15K_path, "train.txt")
     valid_path = os.path.join(FB15K_path, "valid.txt")
@@ -50,7 +52,7 @@ if __name__ == "__main__":
     n_relation = fb15k_mapping.n_relation
 
     fb15k_train_dataset = KGDataset(train_path, fb15k_mapping, filter_flag=FILTER_FLAG)
-    fb15k_train_dataloader = DataLoader(fb15k_train_dataset, TRAIN_BATCH_SIZE)
+    fb15k_train_dataloader = DataLoader(fb15k_train_dataset, TRAIN_BATCH_SIZE, num_workers=3)
     fb15k_valid_dataset = KGDataset(valid_path, fb15k_mapping)
     fb15k_valid_dataloader = DataLoader(fb15k_valid_dataset, VALID_BATCH_SIZE)
     fb15k_test_dataset = KGDataset(test_path, fb15k_mapping)
@@ -61,12 +63,13 @@ if __name__ == "__main__":
           f"valid_triplets_count:{fb15k_valid_dataset.n_triplet}, "
           f"test_triplets_count:{fb15k_test_dataset.n_triplet}\n")
 
-    device = torch.device('cuda') if USE_GPU else torch.device('cpu')
+    device = torch.device('cuda:' + str(USE_GPU)) if USE_GPU else torch.device('cpu')
 
     print("preparing model...", end='')
     transe = TransE(n_entity, n_relation, VECTOR_LENGTH, p_norm=NORM, margin=MARGIN)
     transe = transe.to(device)
     optimizer = optim.SGD(transe.parameters(), lr=LEARNING_RATE)
+    # optimizer = optim.Adam(transe.parameters(), lr=LEARNING_RATE)
     validator = Tester(model=transe, data_loader=fb15k_valid_dataloader, device=device,
                        filter_flag=FILTER_FLAG)
     tester = Tester(model=transe, data_loader=fb15k_test_dataloader, device=device,

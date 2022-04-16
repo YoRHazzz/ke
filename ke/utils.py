@@ -9,3 +9,13 @@ def fix_random(seed=1234):
     random.seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+
+def set_proc_title(title:str):
+    try:
+        import setproctitle
+        setproctitle.setproctitle(title)
+    except ImportError:
+        print("Set process title failed, but it doesn't matter.")
+        print("If you want to use this feature, try pip install setproctitle")
+
+
