@@ -3,6 +3,7 @@ import random
 import numpy as np
 import argparse
 import os
+import logging
 
 
 def fix_random(seed=1234):
@@ -41,11 +42,30 @@ def parse_args():
     parser.add_argument("--SEED", default=1234, type=int)
     parser.add_argument("--PROC_TITLE", default="TransE", type=str)
     parser.add_argument("--DATASET_PATH", default=os.path.join("benchmarks", "FB15K-237.2"), type=str)
-    parser.add_argument("--CHECKPOINT_PATH",
-                        default=os.path.join("ckpt", "FB15K-237.2_TransE.checkpoint.tar"), type=str)
+    parser.add_argument("--CHECKPOINT_PATH", default=os.path.join("ckpt", "checkpoint.tar"), type=str)
+    parser.add_argument("--LOG", default=True, type=_bool)
 
     return parser.parse_args()
 
 
 def _bool(s):
-    return s != "False"
+    return s == "True" or s == "1"
+
+
+def get_logger(logfile_name="log.txt"):
+    if not os.path.isdir("log"):
+        os.mkdir("log")
+
+    log_path = os.path.join("log", logfile_name)
+    fh = logging.FileHandler(log_path)
+    fh.setLevel(logging.INFO)
+    fmt = "%(asctime)-15s %(message)s"
+    datefmt = "%H:%M:%S"
+    formatter = logging.Formatter(fmt, datefmt)
+    fh.setFormatter(formatter)
+
+    logger = logging.getLogger(logfile_name)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(fh)
+
+    return logger

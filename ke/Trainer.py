@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 class Trainer(object):
     def __init__(self, model: BaseModel, train_dataloader: DataLoader, optimizer, device: torch.device,
                  epochs: int, validation_frequency, validator, checkpoint_path,
-                 target_metric="h10", target_score=None):
+                 target_metric="h10", target_score=None, log_write_func=None):
         self.model = model
         self.train_dataloader = train_dataloader
         self.optimizer = optimizer
@@ -21,6 +21,7 @@ class Trainer(object):
         self.checkpoint_path = checkpoint_path
         self.target_metric = target_metric.lower()
         self.target_score = target_score
+        self.log_write_func = log_write_func
 
     def run(self, rerun_from=None):
         if rerun_from and os.path.exists(rerun_from):
@@ -30,8 +31,12 @@ class Trainer(object):
 
         p_bar = trange(self.epochs, desc='Train Epochs', mininterval=1, unit='epochs', file=sys.stdout,
                        colour="blue", ncols=100)
-        p_bar.write(f"epoch  |   h@1   |   h@3   |   h@10   |   mrr  |    mr    | "
-                    f"predict limit {self.target_metric} on validation set")
+        message = f"epoch  |   h@1   |   h@3   |   h@10   |   mrr  |    mr    | " \
+                  f"predict limit {self.target_metric} on validation set"
+        p_bar.write(message)
+        if self.log_write_func is not None:
+            self.log_write_func(message)
+
         postfix = {"loss_sum": '?', "loss_mean": '?'}
         epoch = 0
         n_entity = self.train_dataloader.dataset.n_entity
@@ -83,13 +88,17 @@ class Trainer(object):
 
                 predict_limit = (metric_score - best_metric_score) * ((self.epochs - epoch) / self.validation_frequency)
                 predict_limit += metric_score
-                p_bar.write(f"{epoch:<6} | "
-                            f"{hits_at_1:<6.3f}% | "
-                            f"{hits_at_3:<6.3f}% | "
-                            f"{hits_at_10:<6.3f}%  | "
-                            f"{mrr:<6.4f} | "
-                            f"{mr:<8.3f} | "
-                            f"{predict_limit:<6.3f}")
+                message = f"{epoch:<6} | " \
+                          f"{hits_at_1:<6.3f}% | " \
+                          f"{hits_at_3:<6.3f}% | " \
+                          f"{hits_at_10:<6.3f}%  | " \
+                          f"{mrr:<6.4f} | " \
+                          f"{mr:<8.3f} | " \
+                          f"{predict_limit:<6.3f}"
+                p_bar.write(message)
+                if self.log_write_func is not None:
+                    self.log_write_func(message)
+
                 if metric_score > best_metric_score:
                     self.model.save_checkpoint(self.checkpoint_path)
                     best_metric_score = metric_score
@@ -100,17 +109,29 @@ class Trainer(object):
                 if self.target_score:
                     if self.target_metric in higher_better:
                         if metric_score > self.target_score:
-                            p_bar.write("-" * 20 + f"Reach the goal in the epoch {epoch}" + "-" * 20)
+                            message = "-" * 20 + f" Reach the goal in the epoch {epoch} " + "-" * 20
+                            p_bar.write(message)
+                            if self.log_write_func is not None:
+                                self.log_write_func(message)
                             return epoch, best_metric_score
                         if epoch != 0 and predict_limit < self.target_score:
-                            p_bar.write("-" * 20 + f"Never Reach the goal:{self.target_score}" + "-" * 20)
+                            message = "-" * 20 + f" Never Reach the goal:{self.target_score} " + "-" * 20
+                            p_bar.write(message)
+                            if self.log_write_func is not None:
+                                self.log_write_func(message)
                             return epoch, best_metric_score
                     if self.target_metric in lower_better:
                         if metric_score < self.target_score:
-                            p_bar.write("-" * 20 + f"Reach the goal in the epoch {epoch}" + "-" * 20)
+                            message = "-" * 20 + f" Reach the goal in the epoch {epoch} " + "-" * 20
+                            p_bar.write(message)
+                            if self.log_write_func is not None:
+                                self.log_write_func(message)
                             return epoch, best_metric_score
                         if epoch != 0 and predict_limit > self.target_score:
-                            p_bar.write("-" * 20 + f"Never Reach the goal:{self.target_score}" + "-" * 20)
+                            message = "-" * 20 + f" Never Reach the goal:{self.target_score} " + "-" * 20
+                            p_bar.write(message)
+                            if self.log_write_func is not None:
+                                self.log_write_func(message)
                             return epoch, best_metric_score
 
             self.train_dataloader.dataset.regenerate_head_or_tail()
