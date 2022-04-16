@@ -9,6 +9,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch import optim
 
+
 if __name__ == "__main__":
     args = parse_args()
     NORM, MARGIN, VECTOR_LENGTH, LEARNING_RATE = args.NORM, args.MARGIN, args.VECTOR_LENGTH, args.LEARNING_RATE

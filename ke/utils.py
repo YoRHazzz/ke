@@ -42,8 +42,7 @@ def parse_args():
     parser.add_argument("--SEED", default=1234, type=int)
     parser.add_argument("--PROC_TITLE", default="TransE", type=str)
     parser.add_argument("--DATASET_PATH", default=os.path.join("benchmarks", "FB15K-237.2"), type=str)
-    parser.add_argument("--CHECKPOINT_PATH",
-                        default=os.path.join("ckpt", "FB15K-237.2_TransE.checkpoint.tar"), type=str)
+    parser.add_argument("--CHECKPOINT_PATH", default=os.path.join("ckpt", "checkpoint.tar"), type=str)
     parser.add_argument("--LOG", default=True, type=_bool)
 
     return parser.parse_args()
