@@ -9,9 +9,6 @@ import torch
 from torch.utils.data import DataLoader
 from torch import optim
 
-
-LOG = True
-
 if __name__ == "__main__":
     args = parse_args()
     NORM, MARGIN, VECTOR_LENGTH, LEARNING_RATE = args.NORM, args.MARGIN, args.VECTOR_LENGTH, args.LEARNING_RATE
@@ -22,6 +19,7 @@ if __name__ == "__main__":
     TEST_BATCH_SIZE = args.TEST_BATCH_SIZE
     TARGET_METRIC, TARGET_SCORE = args.TARGET_METRIC, args.TARGET_SCORE
     SEED, PROC_TITLE = args.SEED, args.PROC_TITLE
+    LOG = args.LOG
 
     now = datetime.datetime.now()
     date = f"{now.year}-{now.month}-{now.day}"
