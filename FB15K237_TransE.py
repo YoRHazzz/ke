@@ -1,6 +1,6 @@
 import os
 
-from ke import fix_random, set_proc_title, Tester, Trainer
+from ke import fix_random, set_proc_title, parse_args, Tester, Trainer
 from ke.data import KGMapping, KGDataset
 from ke.model import TransE
 
@@ -8,37 +8,27 @@ import torch
 from torch.utils.data import DataLoader
 from torch import optim
 
-NORM = 1
-MARGIN = 5.0
-VECTOR_LENGTH = 200
-LEARNING_RATE = 10
-TARGET_METRIC = 'h10'  # hit@10
-TARGET_SCORE = None  # 70%
-EPOCHS = 1000
-TRAIN_BATCH_SIZE = 4000
-VALID_BATCH_SIZE = 64
-TEST_BATCH_SIZE = 64
-VALIDATION_FREQUENCY = 50
-FILTER_FLAG = True
-USE_GPU = True
-GPU_INDEX = 1
-
-DATASET_PATH = os.path.join("benchmarks", "FB15K-237.2")
-if not os.path.isdir("ckpt"):
-    os.mkdir("ckpt")
-CHECKPOINT_PATH = os.path.join("ckpt", "FB15K-237.2_TransE.checkpoint.tar")
-SEED = 1234
-PROC_TITLE = "TransE"
-
 
 if __name__ == "__main__":
+    args = parse_args()
+    NORM, MARGIN, VECTOR_LENGTH, LEARNING_RATE = args.NORM, args.MARGIN, args.VECTOR_LENGTH, args.LEARNING_RATE
+    EPOCHS, VALIDATE_FREQUENCY, FILTER_FLAG = args.EPOCHS, args.VALIDATE_FREQUENCY, args.FILTER_FLAG
+    USE_GPU, GPU_INDEX = args.USE_GPU, args.GPU_INDEX
+    DATASET_PATH, CHECKPOINT_PATH = args.DATASET_PATH, args.CHECKPOINT_PATH
+    TRAIN_BATCH_SIZE, VALID_BATCH_SIZE = args.TRAIN_BATCH_SIZE, args.VALID_BATCH_SIZE
+    TEST_BATCH_SIZE = args.TEST_BATCH_SIZE
+    TARGET_METRIC, TARGET_SCORE = args.TARGET_METRIC, args.TARGET_SCORE
+    SEED, PROC_TITLE = args.SEED, args.PROC_TITLE
+
     print(f"MARGIN:{MARGIN}, NORM:{NORM}, VECTOR_LENGTH:{VECTOR_LENGTH}, LEARNING_RATE:{LEARNING_RATE}\n"
-          f"EPOCHS:{EPOCHS}, VALIDATE_FREQUENCY:{VALIDATION_FREQUENCY}, FILTER_FLAG:{FILTER_FLAG}\n"
+          f"EPOCHS:{EPOCHS}, VALIDATE_FREQUENCY:{VALIDATE_FREQUENCY}, FILTER_FLAG:{FILTER_FLAG}\n"
           f"USE_GPU:{USE_GPU}, SEED:{SEED}, DATASET_PATH:{DATASET_PATH}, CHECKPOINT_PATH:{CHECKPOINT_PATH}\n"
           f"TRAIN_BATCH_SIZE:{TRAIN_BATCH_SIZE}, VALID_BATCH_SIZE:{VALID_BATCH_SIZE}, "
           f"TEST_BATCH_SIZE:{TEST_BATCH_SIZE}\n"
           f"TARGET_METRIC:{TARGET_METRIC}, TARGET_SCORE:{TARGET_SCORE}\n")
 
+    if not os.path.isdir("ckpt"):
+        os.mkdir("ckpt")
     fix_random(SEED)
     set_proc_title(PROC_TITLE)
     FB15K_path = DATASET_PATH
@@ -64,6 +54,8 @@ if __name__ == "__main__":
           f"valid_triplets_count:{fb15k_valid_dataset.n_triplet}, "
           f"test_triplets_count:{fb15k_test_dataset.n_triplet}\n")
 
+    if USE_GPU:
+        assert GPU_INDEX < torch.cuda.device_count()
     device = torch.device('cuda:' + str(GPU_INDEX)) if USE_GPU else torch.device('cpu')
 
     print("preparing model...", end='')
@@ -76,7 +68,7 @@ if __name__ == "__main__":
     tester = Tester(model=transe, data_loader=fb15k_test_dataloader, device=device,
                     filter_flag=FILTER_FLAG)
     trainer = Trainer(model=transe, train_dataloader=fb15k_train_dataloader, optimizer=optimizer,
-                      device=device, epochs=EPOCHS, validation_frequency=VALIDATION_FREQUENCY,
+                      device=device, epochs=EPOCHS, validation_frequency=VALIDATE_FREQUENCY,
                       validator=validator, checkpoint_path=checkpoint_path,
                       target_metric=TARGET_METRIC, target_score=TARGET_SCORE)
 
