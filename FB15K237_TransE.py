@@ -9,19 +9,28 @@ import torch
 from torch.utils.data import DataLoader
 from torch import optim
 
+args = parse_args()
+NORM = args.NORM
+MARGIN = args.MARGIN
+VECTOR_LENGTH = args.VECTOR_LENGTH
+LEARNING_RATE = args.LEARNING_RATE
+EPOCHS = args.EPOCHS
+VALIDATE_FREQUENCY = args.VALIDATE_FREQUENCY
+FILTER_FLAG = args.FILTER_FLAG
+USE_GPU = args.USE_GPU
+GPU_INDEX = args.GPU_INDEX
+DATASET_PATH = args.DATASET_PATH
+CHECKPOINT_PATH = args.CHECKPOINT_PATH
+TRAIN_BATCH_SIZE = args.TRAIN_BATCH_SIZE
+VALID_BATCH_SIZE = args.VALID_BATCH_SIZE
+TEST_BATCH_SIZE = args.TEST_BATCH_SIZE
+TARGET_METRIC = args.TARGET_METRIC
+TARGET_SCORE = args.TARGET_SCORE
+SEED = args.SEED
+PROC_TITLE = args.PROC_TITLE
+LOG = args.LOG
 
 if __name__ == "__main__":
-    args = parse_args()
-    NORM, MARGIN, VECTOR_LENGTH, LEARNING_RATE = args.NORM, args.MARGIN, args.VECTOR_LENGTH, args.LEARNING_RATE
-    EPOCHS, VALIDATE_FREQUENCY, FILTER_FLAG = args.EPOCHS, args.VALIDATE_FREQUENCY, args.FILTER_FLAG
-    USE_GPU, GPU_INDEX = args.USE_GPU, args.GPU_INDEX
-    DATASET_PATH, CHECKPOINT_PATH = args.DATASET_PATH, args.CHECKPOINT_PATH
-    TRAIN_BATCH_SIZE, VALID_BATCH_SIZE = args.TRAIN_BATCH_SIZE, args.VALID_BATCH_SIZE
-    TEST_BATCH_SIZE = args.TEST_BATCH_SIZE
-    TARGET_METRIC, TARGET_SCORE = args.TARGET_METRIC, args.TARGET_SCORE
-    SEED, PROC_TITLE = args.SEED, args.PROC_TITLE
-    LOG = args.LOG
-
     now = datetime.datetime.now()
     date = f"{now.year}-{now.month}-{now.day}"
     logger = get_logger(date+".txt") if LOG else None
@@ -107,8 +116,9 @@ if __name__ == "__main__":
     if LOG:
         logger.info("-" * 20 + " start training epochs " + "-" * 20)
 
-    exit_epoch, best_metric_score = trainer.run()
-    message = f"exit epoch: {exit_epoch}, best {TARGET_METRIC} on validation: {best_metric_score}"
+    exit_epoch, best_metric_score, loss_sum, loss_mean = trainer.run()
+    message = f"exit epoch: {exit_epoch}, loss_sum: {loss_sum}, loss_min:{loss_mean} \n" \
+              f"best {TARGET_METRIC} on validation: {best_metric_score}"
     print(message)
     if LOG:
         logger.info(message)

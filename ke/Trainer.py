@@ -80,7 +80,7 @@ class Trainer(object):
             postfix["loss_mean"] = postfix["loss_sum"] / self.train_dataloader.dataset.n_triplet
             p_bar.set_postfix(postfix)
             # one epoch finished
-            if epoch % self.validation_frequency == 0:
+            if epoch % self.validation_frequency == 0 or epoch == self.epochs - 1:
                 hits_at_1, hits_at_3, hits_at_10, mr, mrr = self.validator.link_prediction()
                 metric_score_dict["h1"], metric_score_dict["h3"], metric_score_dict["h10"], \
                     metric_score_dict["mr"], metric_score_dict["mrr"] = hits_at_1, hits_at_3, hits_at_10, mr, mrr
@@ -113,28 +113,28 @@ class Trainer(object):
                             p_bar.write(message)
                             if self.log_write_func is not None:
                                 self.log_write_func(message)
-                            return epoch, best_metric_score
+                            return epoch, best_metric_score, postfix["loss_sum"], postfix["loss_mean"]
                         if epoch != 0 and predict_limit < self.target_score:
                             message = "-" * 20 + f" Never Reach the goal:{self.target_score} " + "-" * 20
                             p_bar.write(message)
                             if self.log_write_func is not None:
                                 self.log_write_func(message)
-                            return epoch, best_metric_score
+                            return epoch, best_metric_score, postfix["loss_sum"], postfix["loss_mean"]
                     if self.target_metric in lower_better:
                         if metric_score < self.target_score:
                             message = "-" * 20 + f" Reach the goal in the epoch {epoch} " + "-" * 20
                             p_bar.write(message)
                             if self.log_write_func is not None:
                                 self.log_write_func(message)
-                            return epoch, best_metric_score
+                            return epoch, best_metric_score, postfix["loss_sum"], postfix["loss_mean"]
                         if epoch != 0 and predict_limit > self.target_score:
                             message = "-" * 20 + f" Never Reach the goal:{self.target_score} " + "-" * 20
                             p_bar.write(message)
                             if self.log_write_func is not None:
                                 self.log_write_func(message)
-                            return epoch, best_metric_score
+                            return epoch, best_metric_score, postfix["loss_sum"], postfix["loss_mean"]
 
             self.train_dataloader.dataset.regenerate_head_or_tail()
         # train finished
         p_bar.close()
-        return epoch, best_metric_score
+        return epoch, best_metric_score, postfix["loss_sum"], postfix["loss_mean"]

@@ -15,6 +15,8 @@ def fix_random(seed=1234):
 
 
 def set_proc_title(title: str):
+    if title is None:
+        return
     try:
         import setproctitle
         setproctitle.setproctitle(title)
@@ -26,11 +28,11 @@ def set_proc_title(title: str):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--NORM", default=1, type=int)
-    parser.add_argument("--MARGIN", default=5.0, type=float)
+    parser.add_argument("--MARGIN", default=3.0, type=float)
     parser.add_argument("--VECTOR_LENGTH", default=200, type=int)
     parser.add_argument("--LEARNING_RATE", default=1., type=float)
-    parser.add_argument("--EPOCHS", default=1000, type=int)
-    parser.add_argument("--TRAIN_BATCH_SIZE", default=4096, type=int)
+    parser.add_argument("--EPOCHS", default=1500, type=int)
+    parser.add_argument("--TRAIN_BATCH_SIZE", default=2048, type=int)
     parser.add_argument("--VALID_BATCH_SIZE", default=64, type=int)
     parser.add_argument("--TEST_BATCH_SIZE", default=64, type=int)
     parser.add_argument("--VALIDATE_FREQUENCY", default=50, type=int)
@@ -40,7 +42,7 @@ def parse_args():
     parser.add_argument("--USE_GPU", default=True, type=_bool)
     parser.add_argument("--GPU_INDEX", default=0, type=int)
     parser.add_argument("--SEED", default=1234, type=int)
-    parser.add_argument("--PROC_TITLE", default="TransE", type=str)
+    parser.add_argument("--PROC_TITLE", default=None, type=str)
     parser.add_argument("--DATASET_PATH", default=os.path.join("benchmarks", "FB15K-237.2"), type=str)
     parser.add_argument("--CHECKPOINT_PATH", default=os.path.join("ckpt", "checkpoint.tar"), type=str)
     parser.add_argument("--LOG", default=True, type=_bool)
