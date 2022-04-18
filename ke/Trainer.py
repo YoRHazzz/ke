@@ -80,7 +80,7 @@ class Trainer(object):
             postfix["loss_mean"] = postfix["loss_sum"] / self.train_dataloader.dataset.n_triplet
             p_bar.set_postfix(postfix)
             # one epoch finished
-            if epoch % self.validation_frequency == 0:
+            if epoch % self.validation_frequency == 0 or epoch == self.epochs - 1:
                 hits_at_1, hits_at_3, hits_at_10, mr, mrr = self.validator.link_prediction()
                 metric_score_dict["h1"], metric_score_dict["h3"], metric_score_dict["h10"], \
                     metric_score_dict["mr"], metric_score_dict["mrr"] = hits_at_1, hits_at_3, hits_at_10, mr, mrr
