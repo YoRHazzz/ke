@@ -142,3 +142,4 @@ cython_debug/
 mytest.py
 log/
 ckpt/
+mytest.sh
