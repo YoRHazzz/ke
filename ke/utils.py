@@ -37,15 +37,16 @@ def parse_args():
     parser.add_argument("--TEST_BATCH_SIZE", default=64, type=int)
     parser.add_argument("--VALIDATE_FREQUENCY", default=50, type=int)
     parser.add_argument("--TARGET_METRIC", default="h10", type=str)
-    parser.add_argument("--TARGET_SCORE", default=None, type=float)
+    parser.add_argument("--TARGET_SCORE", default=None, type=_none_or_float)
     parser.add_argument("--FILTER_FLAG", default=True, type=_bool)
     parser.add_argument("--USE_GPU", default=True, type=_bool)
     parser.add_argument("--GPU_INDEX", default=0, type=int)
     parser.add_argument("--SEED", default=1234, type=int)
-    parser.add_argument("--PROC_TITLE", default=None, type=str)
+    parser.add_argument("--PROC_TITLE", default=None, type=_none_or_str)
     parser.add_argument("--DATASET_PATH", default=os.path.join("benchmarks", "FB15K-237.2"), type=str)
     parser.add_argument("--CHECKPOINT_PATH", default=os.path.join("ckpt", "checkpoint.tar"), type=str)
     parser.add_argument("--LOG", default=True, type=_bool)
+    parser.add_argument("--NUM_WORKERS", default=0, type=int)
 
     return parser.parse_args()
 
@@ -53,6 +54,11 @@ def parse_args():
 def _bool(s):
     return s == "True" or s == "1"
 
+def _none_or_float(s):
+    return None if s == "None" else float(s)
+
+def _none_or_str(s):
+    return None if s == "None" else s
 
 def get_logger(logfile_name="log.txt"):
     if not os.path.isdir("log"):
