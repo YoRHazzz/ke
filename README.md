@@ -14,6 +14,7 @@ PyTorch实现知识图谱嵌入
 
 ```bash
 # 安装 CUDA=11.3 cudnn=8.2.1.32
+# 下载本仓库到本地
 git clone https://gitee.com/YoRHazzz/ke.git
 # 可选项，创建虚拟环境
 conda create -n ke python=3.8
@@ -33,23 +34,23 @@ python TransE.py
 | Source/Metric | Hits@1 (filter) | Hits@3 (filter) |  Hits@10 (filter)    | MR(filter) |  MRR (filter)    |
 | ------------- | --------------- | --------------- | ---- | ---------------- | ---- |
 |      TransE paper[[1]](#references)      |                 |                 | 47.1 | 125 |      |
-| KE (Same HyperParameter) |  |  |                  |  |              |
+| KE (Same HyperParameter) | 17.287 | 31.553 | 47.731 | 140.599 | 0.276 |
 | KE (Better HyperParameter) | 38.793 | 70.424 | 84.012 | 37.108 | 0.565 |
 |  | **Hits@1 (raw)** | **Hits@3 (raw)** | **Hits@10 (raw)** | **MR(raw)** | **MRR (raw)** |
 | TransE paper[[1]](#references) |  |  | 34.9 | 243 | |
-| KE (Same HyperParameter) |  |  |  |  | |
+| KE (Same HyperParameter) | 8.410 | 18.670 | 34.693 | 260.572 | 0.170 |
 | KE (Better HyperParameter) | 10.906 | 29.619 | 52.721 | 196.072 | 0.244 |
 
-以上实验的超参数设置如下：
+以上实验的超参数设置如下，这些脚本都保存在examples文件夹中：
 
 ```bash
 # Same HyperParameter (filter)
-python TransE.py --NORM=1 --MARGIN=1 --VECTOR_LENGTH=50 --LEARNING_RATE=0.01 --EPOCHS=1000 --VALIDATE_FREQUENCY=50 --FILTER_FLAG=True --USE_GPU=True --GPU_INDEX=0 --DATASET_PATH=./benchmarks/FB15K --CHECKPOINT_PATH=./ckpt/checkpoint.tar --TRAIN_BATCH_SIZE=2048 --VALID_BATCH_SIZE=64 --TEST_BATCH_SIZE=64 --TARGET_METRIC=h10 --TARGET_SCORE=None --SEED=1234 --PROC_TITLE=Same_Hyperparameter --LOG=True
+python TransE.py --NORM=1 --MARGIN=1 --VECTOR_LENGTH=50 --LEARNING_RATE=0.01 --EPOCHS=1000 --VALIDATE_FREQUENCY=50 --FILTER_FLAG=True --USE_GPU=True --GPU_INDEX=0 --DATASET_PATH=./benchmarks/FB15K --CHECKPOINT_PATH=./ckpt/checkpoint.tar --TRAIN_BATCH_SIZE=50 --VALID_BATCH_SIZE=64 --TEST_BATCH_SIZE=64 --TARGET_METRIC=h10 --TARGET_SCORE=None --SEED=1234 --PROC_TITLE=Same_Hyperparameter --LOG=True --NUM_WORKERS=0
 # Better HyperParameter (filter)
-python TransE.py --NORM=1 --MARGIN=3 --VECTOR_LENGTH=200 --LEARNING_RATE=1 --EPOCHS=2000 --VALIDATE_FREQUENCY=50 --FILTER_FLAG=True --USE_GPU=True --GPU_INDEX=0 --DATASET_PATH=./benchmarks/FB15K --CHECKPOINT_PATH=./ckpt/checkpoint.tar --TRAIN_BATCH_SIZE=2048 --VALID_BATCH_SIZE=64 --TEST_BATCH_SIZE=64 --TARGET_METRIC=h10 --TARGET_SCORE=None --SEED=1234 --PROC_TITLE=Better_Hyperparameter --LOG=True
+python TransE.py --NORM=1 --MARGIN=3 --VECTOR_LENGTH=200 --LEARNING_RATE=1 --EPOCHS=2000 --VALIDATE_FREQUENCY=50 --FILTER_FLAG=True --USE_GPU=True --GPU_INDEX=0 --DATASET_PATH=./benchmarks/FB15K --CHECKPOINT_PATH=./ckpt/checkpoint.tar --TRAIN_BATCH_SIZE=2048 --VALID_BATCH_SIZE=64 --TEST_BATCH_SIZE=64 --TARGET_METRIC=h10 --TARGET_SCORE=None --SEED=1234 --PROC_TITLE=Better_Hyperparameter --LOG=True --NUM_WORKERS=0
 ```
 
-默认启用Filter模式，训练速度更慢但是模型效果。关闭Filter模式启用Raw模式的参数为：
+默认启用Filter模式，训练速度更慢但是模型效果更好。关闭Filter模式启用Raw模式的参数为：
 ```bash
 --FILTER_FLAG=False
 ```

@@ -13,10 +13,11 @@ Implemented these models: TransE
 
 ```bash
 # Install CUDA=11.3 cuDNN=8.2.1.32
+# Clone this repo
 git clone https://gitee.com/YoRHazzz/ke.git
 # Optional: Create a virtual environment
 conda create -n ke python=3.8
-conda actInstalling third-party Librariesivate ke
+conda activate ke
 # Install Libraries
 pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
 pip3 install tqdm pandas setproctitle
@@ -40,13 +41,13 @@ python TransE.py
 | KE (Same HyperParameter)       |                  |                  |                   |             |               |
 | KE (Better HyperParameter)     | 10.906           | 29.619           | 52.721            | 196.072     | 0.244         |
 
-All hyperparameter Settings are as follows：
+All hyperparameter Settings are as follows, and all these scripts are saved in /examples：
 
 ```bash
 # Same HyperParameter (filter)
-python TransE.py --NORM=1 --MARGIN=1 --VECTOR_LENGTH=50 --LEARNING_RATE=0.01 --EPOCHS=1000 --VALIDATE_FREQUENCY=50 --FILTER_FLAG=True --USE_GPU=True --GPU_INDEX=0 --DATASET_PATH=./benchmarks/FB15K --CHECKPOINT_PATH=./ckpt/checkpoint.tar --TRAIN_BATCH_SIZE=64 --VALID_BATCH_SIZE=64 --TEST_BATCH_SIZE=64 --TARGET_METRIC=h10 --TARGET_SCORE=None --SEED=1234 --PROC_TITLE=Same_Hyperparameter --LOG=True
+python TransE.py --NORM=1 --MARGIN=1 --VECTOR_LENGTH=50 --LEARNING_RATE=0.01 --EPOCHS=1000 --VALIDATE_FREQUENCY=50 --FILTER_FLAG=True --USE_GPU=True --GPU_INDEX=0 --DATASET_PATH=./benchmarks/FB15K --CHECKPOINT_PATH=./ckpt/checkpoint.tar --TRAIN_BATCH_SIZE=50 --VALID_BATCH_SIZE=64 --TEST_BATCH_SIZE=64 --TARGET_METRIC=h10 --TARGET_SCORE=None --SEED=1234 --PROC_TITLE=Same_Hyperparameter --LOG=True --NUM_WORKERS=0
 # Better HyperParameter (filter)
-python TransE.py --NORM=1 --MARGIN=3 --VECTOR_LENGTH=200 --LEARNING_RATE=1 --EPOCHS=2000 --VALIDATE_FREQUENCY=50 --FILTER_FLAG=True --USE_GPU=True --GPU_INDEX=0 --DATASET_PATH=./benchmarks/FB15K --CHECKPOINT_PATH=./ckpt/checkpoint.tar --TRAIN_BATCH_SIZE=2048 --VALID_BATCH_SIZE=64 --TEST_BATCH_SIZE=64 --TARGET_METRIC=h10 --TARGET_SCORE=None --SEED=1234 --PROC_TITLE=Better_Hyperparameter --LOG=True
+python TransE.py --NORM=1 --MARGIN=3 --VECTOR_LENGTH=200 --LEARNING_RATE=1 --EPOCHS=2000 --VALIDATE_FREQUENCY=50 --FILTER_FLAG=True --USE_GPU=True --GPU_INDEX=0 --DATASET_PATH=./benchmarks/FB15K --CHECKPOINT_PATH=./ckpt/checkpoint.tar --TRAIN_BATCH_SIZE=2048 --VALID_BATCH_SIZE=64 --TEST_BATCH_SIZE=64 --TARGET_METRIC=h10 --TARGET_SCORE=None --SEED=1234 --PROC_TITLE=Better_Hyperparameter --LOG=True --NUM_WORKERS=0
 ```
 
 The Filter mode is enabled by default. Hence, the training speed is slower but the model effect is better. To disable filter and enable the raw mode, set the argument as follows:
