@@ -29,6 +29,7 @@ TARGET_SCORE = args.TARGET_SCORE
 SEED = args.SEED
 PROC_TITLE = args.PROC_TITLE
 LOG = args.LOG
+NUM_WORKERS = args.NUM_WORKERS
 
 if __name__ == "__main__":
     now = datetime.datetime.now()
@@ -40,7 +41,8 @@ if __name__ == "__main__":
               f"DATASET_PATH:{DATASET_PATH}, CHECKPOINT_PATH:{CHECKPOINT_PATH}\n" \
               f"TRAIN_BATCH_SIZE:{TRAIN_BATCH_SIZE}, VALID_BATCH_SIZE:{VALID_BATCH_SIZE}, " \
               f"TEST_BATCH_SIZE:{TEST_BATCH_SIZE}\n" \
-              f"TARGET_METRIC:{TARGET_METRIC}, TARGET_SCORE:{TARGET_SCORE}\n"
+              f"TARGET_METRIC:{TARGET_METRIC}, TARGET_SCORE:{TARGET_SCORE}\n" \
+              f"LOG:{LOG}, NUM_WORKERS:{NUM_WORKERS}\n"
     print(message)
     if LOG:
         logger.info("-"*20+f" {date} "+"-"*20)
@@ -65,7 +67,7 @@ if __name__ == "__main__":
     n_relation = fb15k_mapping.n_relation
 
     fb15k_train_dataset = KGDataset(train_path, fb15k_mapping, filter_flag=FILTER_FLAG)
-    fb15k_train_dataloader = DataLoader(fb15k_train_dataset, TRAIN_BATCH_SIZE, num_workers=3)
+    fb15k_train_dataloader = DataLoader(fb15k_train_dataset, TRAIN_BATCH_SIZE, num_workers=NUM_WORKERS)
     fb15k_valid_dataset = KGDataset(valid_path, fb15k_mapping)
     fb15k_valid_dataloader = DataLoader(fb15k_valid_dataset, VALID_BATCH_SIZE)
     fb15k_test_dataset = KGDataset(test_path, fb15k_mapping)
