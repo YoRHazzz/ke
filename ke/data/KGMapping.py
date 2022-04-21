@@ -19,8 +19,8 @@ class KGMapping(object):
         if not os.path.exists(mapping_path):
             os.mkdir(mapping_path)
 
-        self.entity2id_path = os.path.join(mapping_path, "entity2id.csv")
-        self.relation2id_path = os.path.join(mapping_path, "relation2id.csv")
+        self.entity2id_path = os.path.join(mapping_path, "entity2id.txt")
+        self.relation2id_path = os.path.join(mapping_path, "relation2id.txt")
         self.h_of_rt_path = os.path.join(mapping_path, "h_of_rt.pkl")
         self.t_of_hr_path = os.path.join(mapping_path, "t_of_hr.pkl")
         self.entity2id = {}
@@ -45,14 +45,14 @@ class KGMapping(object):
             if os.path.exists(self.h_of_rt_path):
                 os.remove(self.h_of_rt_path)
             pd.DataFrame({'entity': self.entity2id.keys(), 'id': self.entity2id.values()}) \
-                .to_csv(self.entity2id_path, index=False)
+                .to_csv(self.entity2id_path, index=False, sep='\t', header=False)
             pd.DataFrame({'relation': self.relation2id.keys(), 'id': self.relation2id.values()}) \
-                .to_csv(self.relation2id_path, index=False)
+                .to_csv(self.relation2id_path, index=False, sep='\t', header=False)
         else:
-            df = pd.read_csv(self.entity2id_path)
+            df = pd.read_csv(self.entity2id_path, sep='\t', header=None)
             for _, (entity, idx) in df.iterrows():
                 self.entity2id[entity] = idx
-            df = pd.read_csv(self.relation2id_path)
+            df = pd.read_csv(self.relation2id_path, sep='\t', header=None)
             for _, (relation, idx) in df.iterrows():
                 self.relation2id[relation] = idx
             del df

@@ -35,11 +35,11 @@ python TransE.py
 | ------------- | --------------- | --------------- | ---- | ---------------- | ---- |
 |      TransE paper[[1]](#references)      |                 |                 | 47.1 | 125 |      |
 | KE (Same HyperParameter) | 17.287 | 31.553 | 47.731 | 140.599 | 0.276 |
-| KE (Better HyperParameter) | 38.793 | 70.424 | 84.012 | 37.108 | 0.565 |
+| KE (Better HyperParameter) | 39.011 | 70.230 | 83.957 | 37.370 | 0.565 |
 |  | **Hits@1 (raw)** | **Hits@3 (raw)** | **Hits@10 (raw)** | **MR(raw)** | **MRR (raw)** |
 | TransE paper[[1]](#references) |  |  | 34.9 | 243 | |
-| KE (Same HyperParameter) | 8.410 | 18.670 | 34.693 | 260.572 | 0.170 |
-| KE (Better HyperParameter) | 10.906 | 29.619 | 52.721 | 196.072 | 0.244 |
+| KE (Same HyperParameter) | 8.543 | 18.767 | 34.684 | 260.626 | 0.171 |
+| KE (Better HyperParameter) | 10.899 | 29.588 | 52.651 | 196.405 | 0.244 |
 
 以上实验的超参数设置如下，这些脚本都保存在examples文件夹中：
 
