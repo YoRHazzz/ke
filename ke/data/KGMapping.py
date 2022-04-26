@@ -1,7 +1,9 @@
 import os
-from collections import Counter
-import pandas as pd
 import pickle
+import shutil
+from collections import Counter
+
+import pandas as pd
 
 
 class KGMapping(object):
@@ -21,11 +23,15 @@ class KGMapping(object):
 
         self.entity2id_path = os.path.join(mapping_path, "entity2id.txt")
         self.relation2id_path = os.path.join(mapping_path, "relation2id.txt")
-        self.h_of_rt_path = os.path.join(mapping_path, "h_of_rt.pkl")
-        self.t_of_hr_path = os.path.join(mapping_path, "t_of_hr.pkl")
+        self.rt2h_path = os.path.join(mapping_path, "rt2h.pkl")
+        self.hr2t_path = os.path.join(mapping_path, "hr2t.pkl")
+        self.h2t_path = os.path.join(mapping_path, "h2t.pkl")
+        self.t2h_path = os.path.join(mapping_path, "t2h.pkl")
         self.entity2id = {}
         self.relation2id = {}
         if not os.path.exists(self.entity2id_path) or not os.path.exists(self.relation2id_path):
+            shutil.rmtree(mapping_path)
+            os.mkdir(mapping_path)
             entity_counter = Counter()
             relation_counter = Counter()
             for file_path in [self.train_path, self.valid_path, self.test_path]:
@@ -40,10 +46,10 @@ class KGMapping(object):
             for idx, (relation, _) in enumerate(relation_counter.most_common()):
                 self.relation2id[relation] = idx
 
-            if os.path.exists(self.t_of_hr_path):
-                os.remove(self.t_of_hr_path)
-            if os.path.exists(self.h_of_rt_path):
-                os.remove(self.h_of_rt_path)
+            if os.path.exists(self.hr2t_path):
+                os.remove(self.hr2t_path)
+            if os.path.exists(self.rt2h_path):
+                os.remove(self.rt2h_path)
             pd.DataFrame({'entity': self.entity2id.keys(), 'id': self.entity2id.values()}) \
                 .to_csv(self.entity2id_path, index=False, sep='\t', header=False)
             pd.DataFrame({'relation': self.relation2id.keys(), 'id': self.relation2id.values()}) \
@@ -59,26 +65,43 @@ class KGMapping(object):
         self.n_entity = len(self.entity2id)
         self.n_relation = len(self.relation2id)
 
-        self.t_of_hr = {}
-        self.h_of_rt = {}
-        if not os.path.exists(self.h_of_rt_path) or not os.path.exists(self.t_of_hr_path):
+        self.hr2t = {}
+        self.rt2h = {}
+        self.h2t = {}
+        self.t2h = {}
+        if not os.path.exists(self.rt2h_path) or not os.path.exists(self.hr2t_path) \
+                or not os.path.exists(self.h2t_path) or not os.path.exists(self.t2h_path):
             for file_path in [self.train_path, self.valid_path, self.test_path]:
                 with open(file_path, "r") as f:
                     for line in f:
                         h, r, t = line[:-1].split("\t")
                         h, r, t = self.entity2id[h], self.relation2id[r], self.entity2id[t]
-                        if (h, r) not in self.t_of_hr:
-                            self.t_of_hr[(h, r)] = set()
-                        self.t_of_hr[(h, r)].add(t)
-                        if (r, t) not in self.h_of_rt:
-                            self.h_of_rt[(r, t)] = set()
-                        self.h_of_rt[(r, t)].add(h)
-            with open(self.t_of_hr_path, 'wb') as f:
-                pickle.dump(self.t_of_hr, f)
-            with open(self.h_of_rt_path, 'wb') as f:
-                pickle.dump(self.h_of_rt, f)
+                        if (h, r) not in self.hr2t:
+                            self.hr2t[(h, r)] = set()
+                        self.hr2t[(h, r)].add(t)
+                        if (r, t) not in self.rt2h:
+                            self.rt2h[(r, t)] = set()
+                        self.rt2h[(r, t)].add(h)
+                        if h not in self.h2t:
+                            self.h2t[h] = set()
+                        self.h2t[h].add(t)
+                        if t not in self.t2h:
+                            self.t2h[t] = set()
+                        self.t2h[t].add(h)
+            with open(self.hr2t_path, 'wb') as f:
+                pickle.dump(self.hr2t, f)
+            with open(self.rt2h_path, 'wb') as f:
+                pickle.dump(self.rt2h, f)
+            with open(self.h2t_path, 'wb') as f:
+                pickle.dump(self.h2t, f)
+            with open(self.t2h_path, 'wb') as f:
+                pickle.dump(self.t2h, f)
         else:
-            with open(self.t_of_hr_path, 'rb') as f:
-                self.t_of_hr = pickle.load(f)
-            with open(self.h_of_rt_path, 'rb') as f:
-                self.h_of_rt = pickle.load(f)
+            with open(self.hr2t_path, 'rb') as f:
+                self.hr2t = pickle.load(f)
+            with open(self.rt2h_path, 'rb') as f:
+                self.rt2h = pickle.load(f)
+            with open(self.h2t_path, 'rb') as f:
+                self.h2t = pickle.load(f)
+            with open(self.t2h_path, 'rb') as f:
+                self.t2h = pickle.load(f)

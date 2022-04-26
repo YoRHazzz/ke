@@ -26,14 +26,14 @@ class Tester(object):
             if self.filter_flag:
                 tails_predictions_mask = torch.zeros(size=(current_batch_size, n_entity)).bool()
                 heads_predictions_mask = torch.zeros(size=(current_batch_size, n_entity)).bool()
-                t_of_hr = self.data_loader.dataset.kg_mapping.t_of_hr
-                h_of_rt = self.data_loader.dataset.kg_mapping.h_of_rt
+                hr2t = self.data_loader.dataset.kg_mapping.hr2t
+                rt2h = self.data_loader.dataset.kg_mapping.rt2h
                 for i in range(current_batch_size):
                     h, r, t = heads[i].item(), relations[i].item(), tails[i].item()
-                    mask_cols = list(t_of_hr[(h, r)])
+                    mask_cols = list(hr2t[(h, r)])
                     tails_predictions_mask[i, mask_cols] = True
                     tails_predictions_mask[i, tails[i]] = False
-                    mask_cols = list(h_of_rt[(r, t)])
+                    mask_cols = list(rt2h[(r, t)])
                     heads_predictions_mask[i, mask_cols] = True
                     heads_predictions_mask[i, heads[i]] = False
 

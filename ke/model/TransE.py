@@ -1,8 +1,9 @@
 import math
 
-from torch import nn
-from .BaseModel import BaseModel
 import torch.nn.functional as F
+from torch import nn
+
+from .BaseModel import BaseModel
 
 
 class TransE(BaseModel):
@@ -32,4 +33,4 @@ class TransE(BaseModel):
             .norm(p=self.p_norm, dim=1)
 
     def loss_func(self, positive_distance, negative_distance):
-        return self.criterion(positive_distance, negative_distance, -self.one_const)
+        return self.criterion(positive_distance, negative_distance, -self.one_const).sum()

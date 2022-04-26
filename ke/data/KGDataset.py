@@ -1,7 +1,8 @@
 import random
-import numpy as np
 
+import numpy as np
 from torch.utils.data import Dataset
+
 from .KGMapping import KGMapping
 
 
@@ -32,10 +33,10 @@ class KGDataset(Dataset):
             h, r, t = self.data[index]
             negative_index = random.randint(0, self.n_entity - 1)
             if self.head_or_tail[index] == 0:
-                while negative_index in self.kg_mapping.h_of_rt[(r, t)]:
+                while negative_index in self.kg_mapping.rt2h[(r, t)]:
                     negative_index = random.randint(0, self.n_entity - 1)
             else:
-                while negative_index in self.kg_mapping.t_of_hr[(h, r)]:
+                while negative_index in self.kg_mapping.hr2t[(h, r)]:
                     negative_index = random.randint(0, self.n_entity - 1)
             return *self.data[index], self.head_or_tail[index], negative_index
         else:
